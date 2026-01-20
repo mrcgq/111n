@@ -116,7 +116,7 @@
 #endif
 
 /* stdbool.h */
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
     #include <stdbool.h>
 #else
     #ifndef __cplusplus
