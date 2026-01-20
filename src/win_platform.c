@@ -13,6 +13,10 @@
  * 版权所有 (c) 2024 v3 项目
  */
 
+
+#include "v3_platform.h"
+#include "v3_log.h" // 通常平台实现也需要日志
+#include <intrin.h> // MSVC需要这个头文件来实现 __cpuidex
 #ifdef _WIN32
 
 #include "v3_platform.h"
