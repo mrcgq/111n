@@ -1,0 +1,142 @@
+
+# v3 Core - Windows Build CI/CD
+# 
+# 触发条件：
+# - Push 到 main 分支
+# - Pull Request
+# - 手动触发
+# - Release 发布
+
+name: Build Windows
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    paths:
+      - 'v3_core/**'
+      - '.github/workflows/build_windows.yml'
+  pull_request:
+    branches: [ "main" ]
+  release:
+    types: [ created ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (Debug/Release)'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Debug
+          - Release
+
+env:
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MSVC 构建
+  # ═══════════════════════════════════════════════════════════════════════════
+  build-msvc:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v1.3
+    
+    - name: Configure CMake
+      working-directory: v3_core
+      run: |
+        cmake -B build -A ${{ matrix.arch == 'x64' && 'x64' || 'Win32' }} `
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+    
+    - name: Build
+      working-directory: v3_core
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+    
+    - name: Run Tests
+      working-directory: v3_core/build
+      run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
+    
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: v3_core-msvc-${{ matrix.arch }}-${{ env.BUILD_TYPE }}
+        path: |
+          v3_core/build/${{ env.BUILD_TYPE }}/*.dll
+          v3_core/build/${{ env.BUILD_TYPE }}/*.lib
+          v3_core/build/${{ env.BUILD_TYPE }}/*.exe
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # MinGW 构建
+  # ═══════════════════════════════════════════════════════════════════════════
+  build-mingw:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup MinGW
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-make
+    
+    - name: Build with MinGW
+      shell: msys2 {0}
+      working-directory: v3_core
+      run: |
+        cmake -B build -G "MinGW Makefiles" \
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+        cmake --build build
+    
+    - name: Run Tests
+      shell: msys2 {0}
+      working-directory: v3_core/build
+      run: ctest --output-on-failure
+    
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: v3_core-mingw-x64-${{ env.BUILD_TYPE }}
+        path: |
+          v3_core/build/*.dll
+          v3_core/build/*.a
+          v3_core/build/*.exe
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 发布包
+  # ═══════════════════════════════════════════════════════════════════════════
+  release:
+    needs: [build-msvc, build-mingw]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Create release package
+      run: |
+        cd artifacts
+        zip -r ../v3_core-windows-all.zip .
+    
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: v3_core-windows-all.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
