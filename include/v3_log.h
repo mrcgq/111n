@@ -1,4 +1,3 @@
-
 /**
  * @file v3_log.h
  * @brief v3 Core - 日志系统
@@ -14,26 +13,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
-/* =========================================================
- * 日志级别（已在 v3_types.h 定义）
- * ========================================================= */
-
-/* 重新声明以确保可见 */
-#ifndef V3_LOG_LEVELS_DEFINED
-#define V3_LOG_LEVELS_DEFINED
-
-typedef enum v3_log_level_e {
-    V3_LOG_TRACE = 0,       /* 追踪 */
-    V3_LOG_DEBUG,           /* 调试 */
-    V3_LOG_INFO,            /* 信息 */
-    V3_LOG_WARN,            /* 警告 */
-    V3_LOG_ERROR,           /* 错误 */
-    V3_LOG_FATAL,           /* 致命 */
-    V3_LOG_OFF,             /* 关闭 */
-} v3_log_level_t;
-
 #endif
 
 /* =========================================================
@@ -226,4 +205,3 @@ V3_API bool v3_log_should_log(v3_log_level_t level);
 #endif
 
 #endif /* V3_LOG_H */
-
