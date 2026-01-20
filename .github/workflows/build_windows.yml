@@ -1,6 +1,5 @@
-
 # v3 Core - Windows Build CI/CD
-# 
+#
 # 触发条件：
 # - Push 到 main 分支
 # - Pull Request
@@ -13,7 +12,10 @@ on:
   push:
     branches: [ "main", "develop" ]
     paths:
-      - 'v3_core/**'
+      - 'src/**'
+      - 'include/**'
+      - 'test/**'
+      - 'CMakeLists.txt'
       - '.github/workflows/build_windows.yml'
   pull_request:
     branches: [ "main" ]
@@ -51,17 +53,15 @@ jobs:
       uses: microsoft/setup-msbuild@v1.3
     
     - name: Configure CMake
-      working-directory: v3_core
       run: |
         cmake -B build -A ${{ matrix.arch == 'x64' && 'x64' || 'Win32' }} `
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
     
     - name: Build
-      working-directory: v3_core
       run: cmake --build build --config ${{ env.BUILD_TYPE }}
     
     - name: Run Tests
-      working-directory: v3_core/build
+      working-directory: build
       run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
     
     - name: Upload Artifacts
@@ -69,9 +69,9 @@ jobs:
       with:
         name: v3_core-msvc-${{ matrix.arch }}-${{ env.BUILD_TYPE }}
         path: |
-          v3_core/build/${{ env.BUILD_TYPE }}/*.dll
-          v3_core/build/${{ env.BUILD_TYPE }}/*.lib
-          v3_core/build/${{ env.BUILD_TYPE }}/*.exe
+          build/${{ env.BUILD_TYPE }}/*.dll
+          build/${{ env.BUILD_TYPE }}/*.lib
+          build/${{ env.BUILD_TYPE }}/*.exe
 
   # ═══════════════════════════════════════════════════════════════════════════
   # MinGW 构建
@@ -95,7 +95,6 @@ jobs:
     
     - name: Build with MinGW
       shell: msys2 {0}
-      working-directory: v3_core
       run: |
         cmake -B build -G "MinGW Makefiles" \
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
@@ -103,7 +102,7 @@ jobs:
     
     - name: Run Tests
       shell: msys2 {0}
-      working-directory: v3_core/build
+      working-directory: build
       run: ctest --output-on-failure
     
     - name: Upload Artifacts
@@ -111,12 +110,12 @@ jobs:
       with:
         name: v3_core-mingw-x64-${{ env.BUILD_TYPE }}
         path: |
-          v3_core/build/*.dll
-          v3_core/build/*.a
-          v3_core/build/*.exe
+          build/*.dll
+          build/*.a
+          build/*.exe
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # 发布包
+  # 发布包 (此部分保持不变)
   # ═══════════════════════════════════════════════════════════════════════════
   release:
     needs: [build-msvc, build-mingw]
