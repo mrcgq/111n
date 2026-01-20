@@ -1,4 +1,5 @@
 
+
 /**
  * @file v3_protocol.h
  * @brief v3 Core - 协议处理
@@ -21,9 +22,6 @@ extern "C" {
 /* =========================================================
  * 协议常量
  * ========================================================= */
-
-/* 协议版本 */
-#define V3_PROTOCOL_VERSION         1
 
 /* 包类型标志 */
 #define V3_FLAG_NONE                0x0000
@@ -379,4 +377,3 @@ V3_API void v3_protocol_reset_stats(v3_protocol_ctx_t *ctx);
 #endif
 
 #endif /* V3_PROTOCOL_H */
-
