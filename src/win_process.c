@@ -12,6 +12,7 @@
  * 版权所有 (c) 2024 v3 项目
  */
 
+#include "v3_core.h"
 #ifdef _WIN32
 
 #include "v3_platform.h"
