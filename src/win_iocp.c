@@ -81,8 +81,8 @@ struct v3_iocp_s {
     int                 active_ops;
     
     /* 回调 */
-    v3_iocp_callback_t  recv_callback;
-    v3_iocp_callback_t  send_callback;
+    v3_io_callback_fn  recv_callback;
+    v3_io_callback_fn  send_callback;
     void               *callback_data;
     
     /* 统计 */
@@ -379,8 +379,8 @@ int v3_iocp_post_send(v3_iocp_t *iocp, SOCKET socket,
  * ========================================================= */
 
 void v3_iocp_set_callbacks(v3_iocp_t *iocp,
-                            v3_iocp_callback_t recv_cb,
-                            v3_iocp_callback_t send_cb,
+                            v3_io_callback_fn recv_cb,
+                            v3_io_callback_fn send_cb,
                             void *user_data) {
     if (!iocp) return;
     
