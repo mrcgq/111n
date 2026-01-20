@@ -1,49 +1,26 @@
-# v3 Core - Windows Build CI/CD
+# v3 Core - Windows Build CI/CD (Sequential Version)
 #
-# 触发条件：
-# - Push 到 main 分支
-# - Pull Request
-# - 手动触发
-# - Release 发布
+# 此版本将并行任务修改为串行，方便逐一调试。
+# 执行顺序: build-msvc-x64 -> build-msvc-x86 -> build-mingw -> release
 
 name: Build Windows
 
 on:
   push:
     branches: [ "main", "develop" ]
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'test/**'
-      - 'CMakeLists.txt'
-      - '.github/workflows/build_windows.yml'
   pull_request:
     branches: [ "main" ]
-  release:
-    types: [ created ]
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type (Debug/Release)'
-        required: true
-        default: 'Release'
-        type: choice
-        options:
-          - Debug
-          - Release
 
 env:
-  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
+  BUILD_TYPE: Release
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════
-  # MSVC 构建
+  # 1. MSVC x64 构建
   # ═══════════════════════════════════════════════════════════════════════════
-  build-msvc:
+  build-msvc-x64:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        arch: [x64, x86]
     
     steps:
     - name: Checkout
@@ -52,32 +29,64 @@ jobs:
     - name: Setup MSVC
       uses: microsoft/setup-msbuild@v1.3
     
-    - name: Configure CMake
-      run: |
-        cmake -B build -A ${{ matrix.arch == 'x64' && 'x64' || 'Win32' }} `
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+    - name: Configure CMake (x64)
+      run: cmake -B build -A x64 -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
     
-    - name: Build
+    - name: Build (x64)
       run: cmake --build build --config ${{ env.BUILD_TYPE }}
     
-    - name: Run Tests
+    - name: Run Tests (x64)
       working-directory: build
       run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
     
-    - name: Upload Artifacts
+    - name: Upload Artifacts (x64)
       uses: actions/upload-artifact@v4
       with:
-        name: v3_core-msvc-${{ matrix.arch }}-${{ env.BUILD_TYPE }}
+        name: v3_core-msvc-x64-${{ env.BUILD_TYPE }}
         path: |
           build/${{ env.BUILD_TYPE }}/*.dll
           build/${{ env.BUILD_TYPE }}/*.lib
           build/${{ env.BUILD_TYPE }}/*.exe
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # MinGW 构建
+  # 2. MSVC x86 构建 (依赖 x64 成功)
+  # ═══════════════════════════════════════════════════════════════════════════
+  build-msvc-x86:
+    runs-on: windows-latest
+    needs: build-msvc-x64  # <--- 关键：设置依赖，使其在 x64 成功后运行
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Setup MSVC
+      uses: microsoft/setup-msbuild@v1.3
+    
+    - name: Configure CMake (x86)
+      run: cmake -B build -A Win32 -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+    
+    - name: Build (x86)
+      run: cmake --build build --config ${{ env.BUILD_TYPE }}
+    
+    - name: Run Tests (x86)
+      working-directory: build
+      run: ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
+    
+    - name: Upload Artifacts (x86)
+      uses: actions/upload-artifact@v4
+      with:
+        name: v3_core-msvc-x86-${{ env.BUILD_TYPE }}
+        path: |
+          build/${{ env.BUILD_TYPE }}/*.dll
+          build/${{ env.BUILD_TYPE }}/*.lib
+          build/${{ env.BUILD_TYPE }}/*.exe
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 3. MinGW 构建 (依赖 MSVC 成功)
   # ═══════════════════════════════════════════════════════════════════════════
   build-mingw:
     runs-on: windows-latest
+    needs: build-msvc-x86  # <--- 关键：设置依赖，使其在 x86 成功后运行
     
     steps:
     - name: Checkout
@@ -96,8 +105,7 @@ jobs:
     - name: Build with MinGW
       shell: msys2 {0}
       run: |
-        cmake -B build -G "MinGW Makefiles" \
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+        cmake -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
         cmake --build build
     
     - name: Run Tests
@@ -115,10 +123,10 @@ jobs:
           build/*.exe
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # 发布包 (此部分保持不变)
+  # 4. 发布包 (依赖所有构建成功)
   # ═══════════════════════════════════════════════════════════════════════════
   release:
-    needs: [build-msvc, build-mingw]
+    needs: [build-msvc-x64, build-msvc-x86, build-mingw]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     
@@ -138,4 +146,8 @@ jobs:
       with:
         files: v3_core-windows-all.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}```
+
+
+
+提交之后，您会看到 GitHub Actions 中的编译流程图会变成一条直线，按顺序执行。这样一来，如果再出现错误，日志会非常干净，只包含第一个失败任务的信息，我们就可以集中精力解决它了。
