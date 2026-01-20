@@ -1,5 +1,4 @@
 # v3 Core - Windows Build CI/CD (Sequential Version)
-#
 # 此版本将并行任务修改为串行，方便逐一调试。
 # 执行顺序: build-msvc-x64 -> build-msvc-x86 -> build-mingw -> release
 
@@ -8,12 +7,29 @@ name: Build Windows
 on:
   push:
     branches: [ "main", "develop" ]
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'test/**'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build_windows.yml'
   pull_request:
     branches: [ "main" ]
+  release:
+    types: [ created ]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (Debug/Release)'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Debug
+          - Release
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'Release' }}
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════
@@ -21,7 +37,6 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   build-msvc-x64:
     runs-on: windows-latest
-    
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -53,8 +68,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   build-msvc-x86:
     runs-on: windows-latest
-    needs: build-msvc-x64  # <--- 关键：设置依赖，使其在 x64 成功后运行
-    
+    needs: build-msvc-x64
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -86,8 +100,7 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   build-mingw:
     runs-on: windows-latest
-    needs: build-msvc-x86  # <--- 关键：设置依赖，使其在 x86 成功后运行
-    
+    needs: build-msvc-x86
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -129,7 +142,6 @@ jobs:
     needs: [build-msvc-x64, build-msvc-x86, build-mingw]
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
-    
     steps:
     - name: Download all artifacts
       uses: actions/download-artifact@v4
@@ -146,8 +158,4 @@ jobs:
       with:
         files: v3_core-windows-all.zip
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}```
-
-
-
-提交之后，您会看到 GitHub Actions 中的编译流程图会变成一条直线，按顺序执行。这样一来，如果再出现错误，日志会非常干净，只包含第一个失败任务的信息，我们就可以集中精力解决它了。
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
