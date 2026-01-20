@@ -1,73 +1,79 @@
 
-/**
- * @file version.h
- * @brief v3 Core - 版本信息
+/*
+ * v3 Core - Version Information
+ * 
+ * 版本信息头文件
+ * 此文件由构建系统自动更新，也可手动修改
  */
 
 #ifndef V3_VERSION_H
 #define V3_VERSION_H
 
-/* 版本号 */
-#define V3_VERSION_MAJOR    1
-#define V3_VERSION_MINOR    0
-#define V3_VERSION_PATCH    0
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 版本号定义
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+#define V3_VERSION_MAJOR        1
+#define V3_VERSION_MINOR        0
+#define V3_VERSION_PATCH        0
+#define V3_VERSION_BUILD        1
 
 /* 版本字符串 */
-#define V3_VERSION_STRING   "1.0.0"
+#define V3_VERSION_STRING       "1.0.0"
+#define V3_VERSION_FULL         "1.0.0.1"
 
-/* 完整版本（带构建信息）*/
-#define V3_VERSION_FULL     V3_VERSION_STRING
+/* 构建信息 */
+#define V3_BUILD_DATE           __DATE__
+#define V3_BUILD_TIME           __TIME__
 
-/* 构建时间（由编译器填充）*/
-#ifndef V3_BUILD_TIME
-    #define V3_BUILD_TIME   __DATE__ " " __TIME__
-#endif
+/* 协议版本（必须与服务端一致） */
+#define V3_PROTOCOL_VERSION     3
+#define V3_PROTOCOL_MIN_VERSION 3
 
-/* 构建平台 */
-#if defined(_WIN64)
-    #define V3_BUILD_PLATFORM   "Windows x64"
-#elif defined(_WIN32)
-    #define V3_BUILD_PLATFORM   "Windows x86"
-#elif defined(__linux__)
-    #if defined(__x86_64__)
-        #define V3_BUILD_PLATFORM   "Linux x64"
-    #elif defined(__aarch64__)
-        #define V3_BUILD_PLATFORM   "Linux ARM64"
-    #else
-        #define V3_BUILD_PLATFORM   "Linux"
-    #endif
-#elif defined(__APPLE__)
-    #define V3_BUILD_PLATFORM   "macOS"
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 产品信息
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+#define V3_PRODUCT_NAME         "v3 Core"
+#define V3_PRODUCT_DESCRIPTION  "v3 Protocol Core Library"
+#define V3_COMPANY_NAME         "v3 Project"
+#define V3_COPYRIGHT            "Copyright (C) 2024"
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * 构建配置标识
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+#ifdef _DEBUG
+#define V3_BUILD_TYPE           "Debug"
 #else
-    #define V3_BUILD_PLATFORM   "Unknown"
+#define V3_BUILD_TYPE           "Release"
 #endif
 
-/* 编译器信息 */
+#ifdef _WIN64
+#define V3_ARCH                 "x64"
+#else
+#define V3_ARCH                 "x86"
+#endif
+
+/* 编译器标识 */
 #if defined(_MSC_VER)
-    #define V3_BUILD_COMPILER   "MSVC " V3_STRINGIFY(_MSC_VER)
-#elif defined(__clang__)
-    #define V3_BUILD_COMPILER   "Clang " __clang_version__
+#define V3_COMPILER             "MSVC"
+#define V3_COMPILER_VERSION     _MSC_VER
+#elif defined(__MINGW64__)
+#define V3_COMPILER             "MinGW-w64"
+#define V3_COMPILER_VERSION     __GNUC__
+#elif defined(__MINGW32__)
+#define V3_COMPILER             "MinGW"
+#define V3_COMPILER_VERSION     __GNUC__
 #elif defined(__GNUC__)
-    #define V3_BUILD_COMPILER   "GCC " __VERSION__
+#define V3_COMPILER             "GCC"
+#define V3_COMPILER_VERSION     __GNUC__
+#elif defined(__clang__)
+#define V3_COMPILER             "Clang"
+#define V3_COMPILER_VERSION     __clang_major__
 #else
-    #define V3_BUILD_COMPILER   "Unknown"
+#define V3_COMPILER             "Unknown"
+#define V3_COMPILER_VERSION     0
 #endif
-
-/* 辅助宏 */
-#define V3_STRINGIFY_(x)    #x
-#define V3_STRINGIFY(x)     V3_STRINGIFY_(x)
-
-/* 版本号数值（用于比较）*/
-#define V3_VERSION_NUMBER   ((V3_VERSION_MAJOR * 10000) + \
-                             (V3_VERSION_MINOR * 100) + \
-                             V3_VERSION_PATCH)
-
-/* Banner */
-#define V3_BANNER \
-    "╔═══════════════════════════════════════════════════════════════╗\n" \
-    "║                    v3 Core for Windows                        ║\n" \
-    "║               High-Performance UDP Protocol                   ║\n" \
-    "╚═══════════════════════════════════════════════════════════════╝"
 
 #endif /* V3_VERSION_H */
-
