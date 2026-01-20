@@ -72,7 +72,12 @@
  * ========================================================= */
 
 #ifdef V3_PLATFORM_WINDOWS
+    // --- START OF CRITICAL FIX ---
+    // 关键修复：在包含 windows.h 之前，必须先包含 winsock2.h
+    // 以避免类型重定义错误。
+    #include <winsock2.h>
     #include <windows.h>
+    // --- END OF CRITICAL FIX ---
     
     /* Windows 下使用标准 stdint 或自定义 */
     #if defined(_MSC_VER) && (_MSC_VER < 1600)
