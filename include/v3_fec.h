@@ -1,4 +1,3 @@
-
 /**
  * @file v3_fec.h
  * @brief v3 Core - FEC 前向纠错
@@ -29,20 +28,6 @@ extern "C" {
 #define V3_FEC_SHARD_SIZE           1400
 #define V3_FEC_DECODE_CACHE_SIZE    128
 #define V3_FEC_XOR_GROUP_SIZE       4
-
-/* =========================================================
- * FEC 类型
- * ========================================================= */
-
-/**
- * @brief FEC 类型（与服务端 fec_type_t 一致）
- */
-typedef enum v3_fec_type_e {
-    V3_FEC_TYPE_NONE = 0,           /* 不使用 FEC */
-    V3_FEC_TYPE_XOR,                /* 简单 XOR（低 CPU，低恢复能力）*/
-    V3_FEC_TYPE_RS,                 /* Reed-Solomon（高恢复能力）*/
-    V3_FEC_TYPE_AUTO,               /* 自动选择 */
-} v3_fec_type_t;
 
 /* =========================================================
  * FEC 分片结构
