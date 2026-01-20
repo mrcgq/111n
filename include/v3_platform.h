@@ -1,5 +1,3 @@
-
-
 /**
  * @file v3_platform.h
  * @brief v3 Core - 平台抽象层
@@ -16,6 +14,38 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// --- START OF CRITICAL FIX ---
+// 在这里为 Windows 平台提供结构体的完整定义
+
+#ifdef V3_PLATFORM_WINDOWS
+#include <windows.h>
+struct v3_mutex_s {
+    CRITICAL_SECTION cs;
+};
+
+struct v3_cond_s {
+    CONDITION_VARIABLE cv;
+};
+
+struct v3_event_s {
+    HANDLE handle;
+};
+
+#else // For other platforms like Linux
+#include <pthread.h>
+struct v3_mutex_s {
+    pthread_mutex_t mutex;
+};
+
+struct v3_cond_s {
+    pthread_cond_t cond;
+};
+
+// ... Linux/macOS event implementation would go here ...
+#endif
+// --- END OF CRITICAL FIX ---
+
 
 /* =========================================================
  * 平台初始化
