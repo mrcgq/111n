@@ -1,4 +1,3 @@
-
 /**
  * @file v3_pacing.h
  * @brief v3 Core - 流量控制/Pacing
@@ -33,22 +32,9 @@ extern "C" {
 #define V3_PACING_MIN_INTERVAL_NS       10000   /* 10µs */
 
 /* =========================================================
- * Pacing 模式
+ * Pacing 状态（自适应模式）
  * ========================================================= */
 
-/**
- * @brief Pacing 模式
- */
-typedef enum v3_pacing_mode_e {
-    V3_PACING_MODE_NONE = 0,        /* 不限速 */
-    V3_PACING_MODE_BRUTAL,          /* Brutal 恒定速率 */
-    V3_PACING_MODE_ADAPTIVE,        /* 自适应（基于 RTT）*/
-    V3_PACING_MODE_BBR,             /* BBR 风格 */
-} v3_pacing_mode_t;
-
-/**
- * @brief Pacing 状态（自适应模式）
- */
 typedef enum v3_pacing_state_e {
     V3_PACING_STATE_SLOW_START = 0, /* 慢启动 */
     V3_PACING_STATE_CONGESTION,     /* 拥塞避免 */
@@ -252,4 +238,3 @@ V3_API u64 v3_pacing_calc_interval(u64 rate_bps, usize packet_size);
 #endif
 
 #endif /* V3_PACING_H */
-
