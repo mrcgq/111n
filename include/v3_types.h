@@ -1,4 +1,3 @@
-
 /**
  * @file v3_types.h
  * @brief v3 Core - 基础类型定义
@@ -117,7 +116,7 @@
 #endif
 
 /* stdbool.h */
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
     #include <stdbool.h>
 #else
     #ifndef __cplusplus
@@ -413,21 +412,6 @@ typedef struct v3_session_s         v3_session_t;
 /* 缓冲区 */
 typedef struct v3_buffer_s          v3_buffer_t;
 typedef struct v3_buffer_pool_s     v3_buffer_pool_t;
-
-/* 网络 */
-typedef struct v3_socket_s          v3_socket_t_internal;
-typedef struct v3_address_s         v3_address_t;
-
-/* FEC */
-typedef struct v3_fec_encoder_s     v3_fec_encoder_t;
-typedef struct v3_fec_decoder_s     v3_fec_decoder_t;
-
-/* Pacing */
-typedef struct v3_pacer_s           v3_pacer_t;
-
-/* IPC */
-typedef struct v3_ipc_server_s      v3_ipc_server_t;
-typedef struct v3_ipc_client_s      v3_ipc_client_t;
 
 /* 统计 */
 typedef struct v3_stats_s           v3_stats_t;
