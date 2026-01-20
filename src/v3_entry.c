@@ -304,8 +304,7 @@ static v3_error_t load_master_key(u8 key[V3_CRYPTO_KEY_SIZE]) {
     /* 优先使用 hex 密钥 */
     if (g_cmdline.key_hex != NULL) {
         if (strlen(g_cmdline.key_hex) != 64) {
-            V3_LOG_ERROR("Invalid key length: expected 64 hex chars, got %zu", 
-                         strlen(g_cmdline.key_hex));
+			V3_LOG_ERROR("Invalid key length: expected 64 hex chars, got %llu", (unsigned long long)strlen(g_cmdline.key_hex));
             return V3_ERR_CRYPTO_INVALID_KEY;
         }
         
@@ -331,8 +330,7 @@ static v3_error_t load_master_key(u8 key[V3_CRYPTO_KEY_SIZE]) {
         fclose(f);
         
         if (read != V3_CRYPTO_KEY_SIZE) {
-            V3_LOG_ERROR("Invalid key file size: expected %d, got %zu", 
-                         V3_CRYPTO_KEY_SIZE, read);
+			V3_LOG_ERROR("Invalid key file size: expected %d, got %llu", V3_CRYPTO_KEY_SIZE, (unsigned long long)read);
             return V3_ERR_CRYPTO_INVALID_KEY;
         }
         
